@@ -1,0 +1,2431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cloud ERP Suite — Enterprise Resource Planning</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<style>
+:root {
+  --primary: #6366f1;
+  --primary-dark: #4f46e5;
+  --secondary: #10b981;
+  --accent: #f59e0b;
+  --danger: #ef4444;
+  --dark: #0f172a;
+  --dark-light: #1e293b;
+  --surface: #1a1f35;
+  --surface2: #212940;
+  --border: rgba(226, 232, 240, 0.1);
+  --text-primary: #f1f5f9;
+  --text-secondary: rgba(241, 245, 249, 0.7);
+  --text-muted: rgba(241, 245, 249, 0.5);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--dark);
+  color: var(--text-primary);
+  font-family: 'Poppins', sans-serif;
+  overflow-x: hidden;
+  line-height: 1.6;
+  transition: all 0.3s ease;
+}
+
+/* PAGE VISIBILITY STATES */
+.page {
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.page.active {
+  display: block;
+  opacity: 1;
+}
+
+/* RESPONSIVE LAYOUT */
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* SIDEBAR */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 250px;
+  height: 100vh;
+  background: var(--dark-light);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  z-index: 100;
+  transition: transform 0.3s ease;
+}
+
+.sidebar.hidden {
+  transform: translateX(-100%);
+}
+
+.sidebar-header {
+  padding: 24px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--primary);
+}
+
+.logo::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--secondary);
+}
+
+.toggle-sidebar {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 20px;
+  display: none;
+}
+
+.sidebar-nav {
+  padding: 24px 0;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.nav-item:hover {
+  background: var(--surface);
+  color: var(--primary);
+  padding-left: 20px;
+}
+
+.nav-item.active {
+  background: var(--surface);
+  color: var(--primary);
+  border-left-color: var(--primary);
+  padding-left: 20px;
+}
+
+.nav-item::before {
+  content: attr(data-icon);
+  font-size: 18px;
+}
+
+/* MAIN CONTENT */
+.main-content {
+  margin-left: 250px;
+  flex: 1;
+  background: var(--dark);
+  transition: margin-left 0.3s ease;
+}
+
+/* TOP BAR */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 32px;
+  background: var(--dark-light);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.top-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.breadcrumb span {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.user-menu:hover {
+  background: var(--surface);
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+/* BACK BUTTON */
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--surface);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  font-family: 'Poppins', sans-serif;
+}
+
+.btn-back:hover {
+  background: var(--surface2);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+/* BUTTONS */
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Poppins', sans-serif;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
+}
+
+.btn-secondary {
+  background: var(--surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--surface2);
+  border-color: var(--text-secondary);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+.btn-ghost:hover {
+  background: var(--surface);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+}
+
+/* CONTAINER */
+.container {
+  padding: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* HERO SECTION */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--surface) 0%, var(--dark) 100%);
+  position: relative;
+  overflow: hidden;
+  padding: 60px 32px;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.15), transparent);
+  top: -200px;
+  right: -200px;
+  border-radius: 50%;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.1), transparent);
+  bottom: -100px;
+  left: -100px;
+  border-radius: 50%;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  max-width: 800px;
+}
+
+.hero-title {
+  font-size: clamp(36px, 8vw, 64px);
+  font-weight: 800;
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.hero-title em {
+  color: var(--primary);
+  font-style: italic;
+  font-weight: 800;
+}
+
+.hero-subtitle {
+  font-size: 18px;
+  color: var(--text-secondary);
+  margin-bottom: 32px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.8;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 48px;
+}
+
+/* STATS */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+  margin-top: 64px;
+}
+
+.stat-card {
+  background: var(--surface2);
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-4px);
+  background: var(--surface);
+}
+
+.stat-number {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* FEATURES SECTION */
+.section {
+  padding: 80px 32px;
+}
+
+.section-header {
+  text-align: center;
+  margin-bottom: 64px;
+}
+
+.section-label {
+  font-size: 12px;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.section-title {
+  font-size: clamp(32px, 6vw, 48px);
+  font-weight: 800;
+  margin-bottom: 16px;
+  line-height: 1.2;
+}
+
+.section-description {
+  font-size: 16px;
+  color: var(--text-secondary);
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.8;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 32px;
+}
+
+.feature-card {
+  background: var(--surface2);
+  padding: 32px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+  border-color: var(--primary);
+  background: var(--surface);
+  transform: translateY(-4px);
+}
+
+.feature-card:hover::before {
+  transform: scaleX(1);
+}
+
+.feature-icon {
+  font-size: 32px;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.feature-name {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+
+.feature-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.feature-button {
+  display: inline-block;
+  padding: 8px 16px;
+  background: var(--primary);
+  color: white;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.feature-button:hover {
+  background: var(--primary-dark);
+}
+
+/* FORMS */
+.form-group {
+  margin-bottom: 24px;
+}
+
+.form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--surface2);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+/* AUTH PAGES */
+.auth-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.auth-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 48px;
+  width: 100%;
+  max-width: 450px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.auth-title {
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.auth-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.auth-link {
+  display: inline-block;
+  margin-top: 8px;
+}
+
+.auth-link a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.auth-link a:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+.form-divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 24px 0;
+  color: var(--text-muted);
+}
+
+.form-divider::before,
+.form-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* DASHBOARD */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.dashboard-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  transition: all 0.3s ease;
+}
+
+.dashboard-card:hover {
+  border-color: var(--primary);
+  background: var(--surface2);
+  transform: translateY(-2px);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.card-icon {
+  font-size: 32px;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.card-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 12px;
+}
+
+.card-change {
+  font-size: 12px;
+  padding: 4px 8px;
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--secondary);
+  border-radius: 4px;
+  width: fit-content;
+}
+
+.card-change.negative {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--danger);
+}
+
+/* TABLE */
+.table-container {
+  overflow-x: auto;
+  margin-top: 24px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table thead {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.table th {
+  padding: 16px;
+  text-align: left;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+}
+
+.table td {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.table tbody tr:hover {
+  background: var(--surface2);
+}
+
+.table-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-active {
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--secondary);
+}
+
+.status-pending {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--accent);
+}
+
+.status-inactive {
+  background: rgba(107, 114, 128, 0.2);
+  color: var(--text-muted);
+}
+
+/* CHARTS */
+.chart-container {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 24px;
+  position: relative;
+  height: 400px;
+}
+
+.chart-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: var(--text-primary);
+}
+
+/* FOOTER */
+footer {
+  background: var(--dark-light);
+  border-top: 1px solid var(--border);
+  padding: 32px;
+  margin-left: 250px;
+  transition: margin-left 0.3s ease;
+}
+
+.footer-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-section h4 {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.footer-section a {
+  display: block;
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  margin-bottom: 8px;
+  transition: color 0.2s ease;
+}
+
+.footer-section a:hover {
+  color: var(--primary);
+}
+
+.footer-bottom {
+  border-top: 1px solid var(--border);
+  padding-top: 24px;
+  margin-top: 32px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* MODAL */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal.active {
+  display: flex;
+}
+
+.modal-content {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 500px;
+  width: 100%;
+  position: relative;
+  animation: slideUp 0.3s ease;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 24px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.modal-close:hover {
+  color: var(--text-primary);
+}
+
+/* CHATBOT */
+.chatbot-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 350px;
+  height: 500px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  z-index: 150;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.chatbot-container.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.chatbot-header {
+  background: var(--primary);
+  color: white;
+  padding: 16px;
+  border-radius: 12px 12px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chatbot-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.message {
+  display: flex;
+  margin-bottom: 12px;
+  animation: slideUp 0.3s ease;
+}
+
+.message.bot {
+  justify-content: flex-start;
+}
+
+.message.user {
+  justify-content: flex-end;
+}
+
+.message-bubble {
+  max-width: 70%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.message.bot .message-bubble {
+  background: var(--surface2);
+  color: var(--text-secondary);
+}
+
+.message.user .message-bubble {
+  background: var(--primary);
+  color: white;
+}
+
+.chatbot-input {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.chatbot-input input {
+  flex: 1;
+  padding: 8px 12px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
+.chatbot-input input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.chatbot-input button {
+  padding: 8px 12px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.2s ease;
+}
+
+.chatbot-input button:hover {
+  background: var(--primary-dark);
+}
+
+.chatbot-toggle {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  background: var(--primary);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  transition: all 0.3s ease;
+  z-index: 140;
+}
+
+.chatbot-toggle:hover {
+  transform: scale(1.1);
+}
+
+.chatbot-toggle.hidden {
+  display: none;
+}
+
+/* NAVBAR - HOME PAGE */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 48px;
+  background: transparent;
+  z-index: 99;
+  transition: all 0.3s ease;
+}
+
+.navbar.scrolled {
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+
+.navbar-logo {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 40px;
+  align-items: center;
+}
+
+.navbar-links a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.2s ease;
+}
+
+.navbar-links a:hover {
+  color: var(--primary);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .toggle-sidebar {
+    display: block;
+  }
+
+  .menu-toggle {
+    display: block;
+  }
+
+  .main-content {
+    margin-left: 0;
+  }
+
+  .sidebar.hidden {
+    transform: translateX(-100%);
+  }
+
+  .container {
+    padding: 16px;
+  }
+
+  .section {
+    padding: 40px 16px;
+  }
+
+  .hero {
+    padding: 40px 16px;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+  }
+
+  .hero-actions .btn {
+    width: 100%;
+  }
+
+  footer {
+    margin-left: 0;
+  }
+
+  .auth-container {
+    padding: 32px 24px;
+  }
+
+  .navbar {
+    padding: 16px 24px;
+  }
+
+  .navbar-links {
+    gap: 20px;
+  }
+
+  .chatbot-container {
+    width: 300px;
+    height: 400px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 28px;
+  }
+
+  .hero-subtitle {
+    font-size: 16px;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .navbar {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .navbar-links {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .chatbot-container {
+    width: 280px;
+    height: 350px;
+  }
+}
+
+/* ANIMATIONS */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease forwards;
+}
+
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.2s; }
+.delay-3 { animation-delay: 0.3s; }
+
+</style>
+</head>
+<body>
+
+<!-- HOME PAGE NAVBAR -->
+<nav class="navbar" id="navbar">
+  <a class="navbar-logo" onclick="navigateTo('home')">Cloud ERP</a>
+  <div class="navbar-links" id="navbarLinks">
+    <a href="#features" onclick="scrollToSection('features')">Features</a>
+    <a href="#modules" onclick="scrollToSection('modules')">Modules</a>
+    <a href="#pricing" onclick="scrollToSection('pricing')">Pricing</a>
+    <a href="javascript:void(0)" onclick="navigateTo('login')">Sign In</a>
+    <a href="javascript:void(0)" onclick="navigateTo('register')" class="btn btn-primary">Get Started</a>
+  </div>
+</nav>
+
+<!-- SIDEBAR (FOR DASHBOARD) -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">Cloud ERP</div>
+    <button class="toggle-sidebar" onclick="toggleSidebar()">✕</button>
+  </div>
+  <nav class="sidebar-nav">
+    <a class="nav-item active" data-icon="🏠" onclick="navigateTo('dashboard')">Dashboard</a>
+    <a class="nav-item" data-icon="📊" onclick="navigateTo('analytics')">Analytics</a>
+    <a class="nav-item" data-icon="👥" onclick="navigateTo('employees')">Employees</a>
+    <a class="nav-item" data-icon="📦" onclick="navigateTo('inventory')">Inventory</a>
+    <a class="nav-item" data-icon="🤖" onclick="navigateTo('prediction')">AI Predictions</a>
+    <a class="nav-item" data-icon="⚙️" onclick="navigateTo('settings')">Settings</a>
+    <a class="nav-item" data-icon="🚪" onclick="logout()">Logout</a>
+  </nav>
+</aside>
+
+<!-- MAIN LAYOUT -->
+<div class="main-content" id="mainContent">
+  <!-- TOP BAR -->
+  <div class="top-bar" id="topBar" style="display: none;">
+    <div class="top-bar-left">
+      <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+      <div class="breadcrumb">
+        <span id="breadcrumb">Dashboard</span>
+      </div>
+    </div>
+    <div class="top-bar-right">
+      <div class="user-menu">
+        <div class="user-avatar">U</div>
+        <span style="font-size: 13px;">Admin User</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOME PAGE -->
+  <div class="page active" id="homePage">
+    <div class="hero" id="heroSection">
+      <div class="hero-content fade-in">
+        <h1 class="hero-title">Enterprise <em>Resource Planning</em> Simplified</h1>
+        <p class="hero-subtitle">Complete business management platform with real-time analytics, employee management, inventory tracking, and AI-powered predictions.</p>
+        <div class="hero-actions">
+          <a href="javascript:void(0)" onclick="navigateTo('register')" class="btn btn-primary">Get Started Free</a>
+          <a href="javascript:void(0)" class="btn btn-ghost">View Demo</a>
+        </div>
+        
+        <div class="stats-grid">
+          <div class="stat-card fade-in delay-1">
+            <div class="stat-number">5K<span style="font-size: 16px; color: var(--text-secondary);">+</span></div>
+            <div class="stat-label">Active Users</div>
+          </div>
+          <div class="stat-card fade-in delay-2">
+            <div class="stat-number">99.9<span style="font-size: 16px; color: var(--text-secondary);">%</span></div>
+            <div class="stat-label">Uptime SLA</div>
+          </div>
+          <div class="stat-card fade-in delay-3">
+            <div class="stat-number">24/7</div>
+            <div class="stat-label">Support</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FEATURES SECTION -->
+    <section class="section" id="features">
+      <div class="section-header">
+        <div class="section-label">CAPABILITIES</div>
+        <h2 class="section-title">Powerful Features <em>for Your Business</em></h2>
+        <p class="section-description">Everything you need to manage your enterprise efficiently</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card fade-in delay-1">
+          <span class="feature-icon">📊</span>
+          <div class="feature-name">Real-time Analytics</div>
+          <div class="feature-desc">Comprehensive dashboards and charts for data-driven decisions.</div>
+          <button class="feature-button" onclick="navigateTo('analytics')">Explore →</button>
+        </div>
+
+        <div class="feature-card fade-in delay-2">
+          <span class="feature-icon">👥</span>
+          <div class="feature-name">Employee Management</div>
+          <div class="feature-desc">Complete HR solution with payroll, benefits, and performance tracking.</div>
+          <button class="feature-button" onclick="navigateTo('employees')">Explore →</button>
+        </div>
+
+        <div class="feature-card fade-in delay-3">
+          <span class="feature-icon">📦</span>
+          <div class="feature-name">Inventory Management</div>
+          <div class="feature-desc">Track stock, manage warehouses, and optimize supply chain.</div>
+          <button class="feature-button" onclick="navigateTo('inventory')">Explore →</button>
+        </div>
+
+        <div class="feature-card fade-in delay-1">
+          <span class="feature-icon">🤖</span>
+          <div class="feature-name">AI Predictions</div>
+          <div class="feature-desc">Machine learning models for forecasting and trend analysis.</div>
+          <button class="feature-button" onclick="navigateTo('prediction')">Explore →</button>
+        </div>
+
+        <div class="feature-card fade-in delay-2">
+          <span class="feature-icon">💰</span>
+          <div class="feature-name">Financial Management</div>
+          <div class="feature-desc">Accounting, budgeting, and financial reporting tools.</div>
+          <button class="feature-button">Explore →</button>
+        </div>
+
+        <div class="feature-card fade-in delay-3">
+          <span class="feature-icon">🔒</span>
+          <div class="feature-name">Enterprise Security</div>
+          <div class="feature-desc">Bank-level encryption and compliance with international standards.</div>
+          <button class="feature-button">Explore →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULES SECTION -->
+    <section class="section" id="modules" style="background: var(--surface);">
+      <div class="section-header">
+        <div class="section-label">MODULES</div>
+        <h2 class="section-title">Complete ERP <em>Module Suite</em></h2>
+        <p class="section-description">Integrate all business functions in one platform</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card fade-in delay-1">
+          <span class="feature-icon">💼</span>
+          <div class="feature-name">Finance</div>
+          <div class="feature-desc">GL, AP/AR, payroll, budgeting, and financial reporting.</div>
+        </div>
+
+        <div class="feature-card fade-in delay-2">
+          <span class="feature-icon">🏢</span>
+          <div class="feature-name">HR & Payroll</div>
+          <div class="feature-desc">Employee management, recruitment, and compensation.</div>
+        </div>
+
+        <div class="feature-card fade-in delay-3">
+          <span class="feature-icon">🛍️</span>
+          <div class="feature-name">Sales & CRM</div>
+          <div class="feature-desc">Customer management, orders, and sales forecasting.</div>
+        </div>
+
+        <div class="feature-card fade-in delay-1">
+          <span class="feature-icon">🏭</span>
+          <div class="feature-name">Procurement</div>
+          <div class="feature-desc">Purchase orders, vendor management, and contracts.</div>
+        </div>
+
+        <div class="feature-card fade-in delay-2">
+          <span class="feature-icon">📋</span>
+          <div class="feature-name">Supply Chain</div>
+          <div class="feature-desc">Logistics, warehouse, and distribution management.</div>
+        </div>
+
+        <div class="feature-card fade-in delay-3">
+          <span class="feature-icon">📈</span>
+          <div class="feature-name">Business Intelligence</div>
+          <div class="feature-desc">Reports, dashboards, and predictive analytics.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRICING SECTION -->
+    <section class="section" id="pricing">
+      <div class="section-header">
+        <div class="section-label">PRICING</div>
+        <h2 class="section-title">Simple, Transparent <em>Pricing</em></h2>
+        <p class="section-description">Choose the plan that fits your business</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card fade-in delay-1">
+          <div style="margin-bottom: 24px;">
+            <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">Starter</h3>
+            <div style="font-size: 28px; font-weight: 800; color: var(--primary); margin-bottom: 4px;">$499<span style="font-size: 14px; color: var(--text-secondary);">/month</span></div>
+            <p style="font-size: 13px; color: var(--text-muted);">Up to 5 users</p>
+          </div>
+          <div style="border-top: 1px solid var(--border); padding-top: 24px;">
+            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.8;">
+              ✓ Basic Finance Module<br>
+              ✓ Up to 5 user accounts<br>
+              ✓ Email support<br>
+              ✓ Weekly backups<br>
+              ✗ API access
+            </div>
+            <button class="btn btn-secondary" style="width: 100%; margin-top: 24px;" onclick="navigateTo('register')">Get Started</button>
+          </div>
+        </div>
+
+        <div class="feature-card fade-in delay-2" style="border: 2px solid var(--primary); position: relative;">
+          <div style="position: absolute; top: -12px; right: 16px; background: var(--primary); color: white; padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: 700;">POPULAR</div>
+          <div style="margin-bottom: 24px;">
+            <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">Professional</h3>
+            <div style="font-size: 28px; font-weight: 800; color: var(--primary); margin-bottom: 4px;">$1,299<span style="font-size: 14px; color: var(--text-secondary);">/month</span></div>
+            <p style="font-size: 13px; color: var(--text-muted);">Up to 25 users</p>
+          </div>
+          <div style="border-top: 1px solid var(--border); padding-top: 24px;">
+            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.8;">
+              ✓ All Starter features<br>
+              ✓ All core modules<br>
+              ✓ Up to 25 users<br>
+              ✓ Priority support<br>
+              ✓ API access<br>
+              ✓ Daily backups
+            </div>
+            <button class="btn btn-primary" style="width: 100%; margin-top: 24px;" onclick="navigateTo('register')">Get Started</button>
+          </div>
+        </div>
+
+        <div class="feature-card fade-in delay-3">
+          <div style="margin-bottom: 24px;">
+            <h3 style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">Enterprise</h3>
+            <div style="font-size: 28px; font-weight: 800; color: var(--primary); margin-bottom: 4px;">Custom<span style="font-size: 14px; color: var(--text-secondary);">/month</span></div>
+            <p style="font-size: 13px; color: var(--text-muted);">Unlimited users</p>
+          </div>
+          <div style="border-top: 1px solid var(--border); padding-top: 24px;">
+            <div style="font-size: 13px; color: var(--text-secondary); line-height: 1.8;">
+              ✓ All Professional features<br>
+              ✓ Unlimited users<br>
+              ✓ Custom modules<br>
+              ✓ 24/7 phone support<br>
+              ✓ Dedicated account manager<br>
+              ✓ SLA guarantee
+            </div>
+            <button class="btn btn-secondary" style="width: 100%; margin-top: 24px;">Contact Sales</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- LOGIN PAGE -->
+  <div class="page" id="loginPage">
+    <div class="auth-page">
+      <div class="auth-container">
+        <div class="auth-header">
+          <h1 class="auth-title">Welcome Back</h1>
+          <p class="auth-subtitle">Sign in to your Cloud ERP account</p>
+        </div>
+        <form onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" class="form-input" placeholder="admin@company.com" value="admin@company.com" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" class="form-input" placeholder="••••••••" value="password" required>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-secondary);">
+              <input type="checkbox" style="width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer;">
+              Remember me
+            </label>
+            <a href="#" style="font-size: 13px; color: var(--primary); text-decoration: none;">Forgot password?</a>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-bottom: 16px;">Sign In</button>
+        </form>
+        <div class="form-divider">or</div>
+        <button type="button" class="btn btn-secondary" style="width: 100%; margin-bottom: 24px;">Continue with Google</button>
+        <div class="auth-link" style="text-align: center;">
+          Don't have an account? <a href="javascript:void(0)" onclick="navigateTo('register')">Sign up here</a>
+        </div>
+        <div style="margin-top: 20px; padding: 12px; background: var(--surface2); border-radius: 6px; font-size: 12px; color: var(--text-muted); text-align: center;">
+          📌 Demo: Use admin@company.com / password
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REGISTER PAGE -->
+  <div class="page" id="registerPage">
+    <div class="auth-page">
+      <div class="auth-container">
+        <div class="auth-header">
+          <h1 class="auth-title">Get Started</h1>
+          <p class="auth-subtitle">Create your Cloud ERP account</p>
+        </div>
+        <form onsubmit="handleRegister(event)">
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" class="form-input" placeholder="John Doe" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Company Name</label>
+            <input type="text" class="form-input" placeholder="Your Company" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" class="form-input" placeholder="you@example.com" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" class="form-input" placeholder="••••••••" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm Password</label>
+            <input type="password" class="form-input" placeholder="••••••••" required>
+          </div>
+          <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--text-secondary); margin-bottom: 24px;">
+            <input type="checkbox" style="width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; margin-top: 2px;" required>
+            I agree to the Terms of Service and Privacy Policy
+          </label>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-bottom: 16px;">Create Account</button>
+        </form>
+        <div class="form-divider">or</div>
+        <button type="button" class="btn btn-secondary" style="width: 100%; margin-bottom: 24px;">Sign up with Google</button>
+        <div class="auth-link" style="text-align: center;">
+          Already have an account? <a href="javascript:void(0)" onclick="navigateTo('login')">Sign in here</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN DASHBOARD PAGE -->
+  <div class="page" id="dashboardPage">
+    <div class="container">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+        <div>
+          <h1 style="font-size: 32px; font-weight: 800; margin-bottom: 8px;">Welcome Back!</h1>
+          <p style="color: var(--text-secondary);">Here's your business overview at a glance</p>
+        </div>
+      </div>
+
+      <!-- KEY METRICS -->
+      <div class="dashboard-grid">
+        <div class="dashboard-card fade-in delay-1">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Total Revenue</div>
+              <div class="card-value">$2.4M</div>
+              <div class="card-change">+12.5% this month</div>
+            </div>
+            <div class="card-icon">📊</div>
+          </div>
+        </div>
+
+        <div class="dashboard-card fade-in delay-2">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Active Orders</div>
+              <div class="card-value">342</div>
+              <div class="card-change">+8.2% increase</div>
+            </div>
+            <div class="card-icon">🛒</div>
+          </div>
+        </div>
+
+        <div class="dashboard-card fade-in delay-3">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Team Members</div>
+              <div class="card-value">48</div>
+              <div class="card-change">3 new this week</div>
+            </div>
+            <div class="card-icon">👥</div>
+          </div>
+        </div>
+
+        <div class="dashboard-card fade-in delay-1">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Inventory Value</div>
+              <div class="card-value">$1.8M</div>
+              <div class="card-change negative">-3.1% decline</div>
+            </div>
+            <div class="card-icon">📦</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RECENT TRANSACTIONS -->
+      <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px; margin-top: 32px;">
+        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 24px;">Recent Transactions</h2>
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Transaction ID</th>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>#TXN-2024-001</td>
+                <td>May 25, 2024</td>
+                <td>Invoice</td>
+                <td>$15,500</td>
+                <td><span class="table-status status-active">Completed</span></td>
+              </tr>
+              <tr>
+                <td>#TXN-2024-002</td>
+                <td>May 24, 2024</td>
+                <td>Purchase Order</td>
+                <td>$8,200</td>
+                <td><span class="table-status status-pending">Pending</span></td>
+              </tr>
+              <tr>
+                <td>#TXN-2024-003</td>
+                <td>May 23, 2024</td>
+                <td>Payment</td>
+                <td>$12,000</td>
+                <td><span class="table-status status-active">Completed</span></td>
+              </tr>
+              <tr>
+                <td>#TXN-2024-004</td>
+                <td>May 22, 2024</td>
+                <td>Refund</td>
+                <td>$3,400</td>
+                <td><span class="table-status status-active">Completed</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANALYTICS PAGE -->
+  <div class="page" id="analyticsPage">
+    <div class="container">
+      <div style="margin-bottom: 40px;">
+        <button class="btn-back" onclick="navigateTo('dashboard')">← Back to Dashboard</button>
+      </div>
+
+      <h1 style="font-size: 32px; font-weight: 800; margin-bottom: 8px;">Analytics & Reports</h1>
+      <p style="color: var(--text-secondary); margin-bottom: 40px;">Comprehensive business insights and performance metrics</p>
+
+      <!-- REVENUE CHART -->
+      <div class="chart-container">
+        <h3 class="chart-title">Monthly Revenue Trend</h3>
+        <canvas id="revenueChart"></canvas>
+      </div>
+
+      <!-- SALES DISTRIBUTION CHART -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 24px;">
+        <div class="chart-container">
+          <h3 class="chart-title">Sales by Product Category</h3>
+          <canvas id="categoryChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+          <h3 class="chart-title">Order Status Distribution</h3>
+          <canvas id="statusChart"></canvas>
+        </div>
+      </div>
+
+      <!-- PERFORMANCE METRICS -->
+      <div class="dashboard-grid" style="margin-top: 40px;">
+        <div class="dashboard-card fade-in delay-1">
+          <div class="card-title">Avg Order Value</div>
+          <div class="card-value">$4,250</div>
+          <p style="font-size: 13px; color: var(--text-secondary); margin-top: 8px;">↑ 5.2% from last month</p>
+        </div>
+
+        <div class="dashboard-card fade-in delay-2">
+          <div class="card-title">Customer Satisfaction</div>
+          <div class="card-value">4.8<span style="font-size: 16px; color: var(--text-secondary);">/5</span></div>
+          <p style="font-size: 13px; color: var(--text-secondary); margin-top: 8px;">Based on 1,240 reviews</p>
+        </div>
+
+        <div class="dashboard-card fade-in delay-3">
+          <div class="card-title">Conversion Rate</div>
+          <div class="card-value">3.2<span style="font-size: 16px; color: var(--text-secondary);">%</span></div>
+          <p style="font-size: 13px; color: var(--text-secondary); margin-top: 8px;">↑ 0.8% improvement</p>
+        </div>
+
+        <div class="dashboard-card fade-in delay-1">
+          <div class="card-title">Return on Investment</div>
+          <div class="card-value">285<span style="font-size: 16px; color: var(--text-secondary);">%</span></div>
+          <p style="font-size: 13px; color: var(--text-secondary); margin-top: 8px;">YoY comparison</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMPLOYEE MANAGEMENT PAGE -->
+  <div class="page" id="employeesPage">
+    <div class="container">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+        <div>
+          <button class="btn-back" onclick="navigateTo('dashboard')">← Back to Dashboard</button>
+        </div>
+        <button class="btn btn-primary" style="margin-top: 16px;">+ Add Employee</button>
+      </div>
+
+      <h1 style="font-size: 32px; font-weight: 800; margin-bottom: 8px;">Employee Management</h1>
+      <p style="color: var(--text-secondary); margin-bottom: 40px;">Manage team members, payroll, and performance</p>
+
+      <!-- EMPLOYEE STATS -->
+      <div class="dashboard-grid">
+        <div class="dashboard-card fade-in delay-1">
+          <div class="card-title">Total Employees</div>
+          <div class="card-value">248</div>
+          <div class="card-change">+12 this quarter</div>
+        </div>
+
+        <div class="dashboard-card fade-in delay-2">
+          <div class="card-title">Active Today</div>
+          <div class="card-value">234</div>
+          <div class="card-change">94.4% attendance</div>
+        </div>
+
+        <div class="dashboard-card fade-in delay-3">
+          <div class="card-title">Avg Salary</div>
+          <div class="card-value">$65K</div>
+          <div class="card-change">Monthly basis</div>
+        </div>
+
+        <div class="dashboard-card fade-in delay-1">
+          <div class="card-title">Departments</div>
+          <div class="card-value">12</div>
+          <div class="card-change">Well distributed</div>
+        </div>
+      </div>
+
+      <!-- EMPLOYEES TABLE -->
+      <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px; margin-top: 32px;">
+        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 24px;">Team Members</h2>
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Position</th>
+                <th>Department</th>
+                <th>Salary</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight: 600;">John Smith</td>
+                <td>Senior Manager</td>
+                <td>Finance</td>
+                <td>$95,000</td>
+                <td><span class="table-status status-active">Active</span></td>
+                <td><a href="#" style="color: var(--primary); cursor: pointer;">View →</a></td>
+              </tr>
+              <tr>
+                <td style="font-weight: 600;">Sarah Johnson</td>
+                <td>Product Manager</td>
+                <td>Product</td>
+                <td>$85,000</td>
+                <td><span class="table-status status-active">Active</span></td>
+                <td><a href="#" style="color: var(--primary); cursor: pointer;">View →</a></td>
+              </tr>
+              <tr>
+                <td style="font-weight: 600;">Mike Davis</td>
+                <td>Lead Developer</td>
+                <td>Engineering</td>
+                <td>$120,000</td>
+                <td><span class="table-status status-active">Active</span></td>
+                <td><a href="#" style="color: var(--primary); cursor: pointer;">View →</a></td>
+              </tr>
+              <tr>
+                <td style="font-weight: 600;">Emily Brown</td>
+                <td>HR Specialist</td>
+                <td>Human Resources</td>
+                <td>$65,000</td>
+                <td><span class="table-status status-inactive">Leave</span></td>
+                <td><a href="#" style="color: var(--primary); cursor: pointer;">View →</a></td>
+              </tr>
+              <tr>
+                <td style="font-weight: 600;">Alex Wilson</td>
+                <td>Data Analyst</td>
+                <td>Analytics</td>
+                <td>$75,000</td>
+                <td><span class="table-status status-active">Active</span></td>
+                <td><a href="#" style="color: var(--primary); cursor: pointer;">View →</a></td>
+              </tr>
+              <tr>
+                <td style="font-weight: 600;">Lisa Martinez</td>
+                <td>Marketing Manager</td>
+                <td>Marketing</td>
+                <td>$70,000</td>
+                <td><span class="table-status status-pending">Probation</span></td>
+                <td><a href="#" style="color: var(--primary); cursor: pointer;">View →</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INVENTORY PAGE -->
+  <div class="page" id="inventoryPage">
+    <div class="container">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+        <div>
+          <button class="btn-back" onclick="navigateTo('dashboard')">← Back to Dashboard</button>
+        </div>
+        <button class="btn btn-primary" style="margin-top: 16px;">+ Add Item</button>
+      </div>
+
+      <h1 style="font-size: 32px; font-weight: 800; margin-bottom: 8px;">Inventory Management</h1>
+      <p style="color: var(--text-secondary); margin-bottom: 40px;">Track stock levels and warehouse management</p>
+
+      <!-- INVENTORY STATS -->
+      <div class="dashboard-grid">
+        <div class="dashboard-card fade-in delay-1">
+          <div class="card-title">Total Items</div>
+          <div class="card-value">1,240</div>
+          <div class="card-change">+145 this month</div>
+        </div>
+
+        <div class="dashboard-card fade-in delay-2">
+          <div class="card-title">Low Stock Items</div>
+          <div class="card-value">23</div>
+          <div class="card-change negative">Requires action</div>
+        </div>
+
+        <div class="dashboard-card fade-in delay-3">
+          <div class="card-title">Inventory Value</div>
+          <div class="card-value">$1.8M</div>
+          <div class="card-change">Total worth</div>
+        </div>
+
+        <div class="dashboard-card fade-in delay-1">
+          <div class="card-title">Warehouses</div>
+          <div class="card-value">5</div>
+          <div class="card-change">Active locations</div>
+        </div>
+      </div>
+
+      <!-- INVENTORY TABLE -->
+      <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px; margin-top: 32px;">
+        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 24px;">Stock Items</h2>
+        <div class="table-container">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>SKU</th>
+                <th>Product Name</th>
+                <th>Quantity</th>
+                <th>Unit Price</th>
+                <th>Total Value</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight: 600; color: var(--primary);">SKU-001</td>
+                <td>Premium Laptop Pro</td>
+                <td>145</td>
+                <td>$1,299</td>
+                <td>$188,355</td>
+                <td><span class="table-status status-active">In Stock</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight: 600; color: var(--primary);">SKU-002</td>
+                <td>Wireless Mouse</td>
+                <td>5</td>
+                <td>$45</td>
+                <td>$225</td>
+                <td><span class="table-status status-pending">Low Stock</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight: 600; color: var(--primary);">SKU-003</td>
+                <td>USB-C Cable (2m)</td>
+                <td>350</td>
+                <td>$12</td>
+                <td>$4,200</td>
+                <td><span class="table-status status-active">In Stock</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight: 600; color: var(--primary);">SKU-004</td>
+                <td>4K Monitor 27"</td>
+                <td>28</td>
+                <td>$399</td>
+                <td>$11,172</td>
+                <td><span class="table-status status-active">In Stock</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight: 600; color: var(--primary);">SKU-005</td>
+                <td>Mechanical Keyboard</td>
+                <td>2</td>
+                <td>$189</td>
+                <td>$378</td>
+                <td><span class="table-status status-pending">Low Stock</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight: 600; color: var(--primary);">SKU-006</td>
+                <td>Webcam HD</td>
+                <td>82</td>
+                <td>$79</td>
+                <td>$6,478</td>
+                <td><span class="table-status status-active">In Stock</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI PREDICTIONS PAGE -->
+  <div class="page" id="predictionPage">
+    <div class="container">
+      <div style="margin-bottom: 40px;">
+        <button class="btn-back" onclick="navigateTo('dashboard')">← Back to Dashboard</button>
+      </div>
+
+      <h1 style="font-size: 32px; font-weight: 800; margin-bottom: 8px;">AI Predictions & Forecasting</h1>
+      <p style="color: var(--text-secondary); margin-bottom: 40px;">Machine learning models for business intelligence</p>
+
+      <!-- PREDICTION METRICS -->
+      <div class="dashboard-grid">
+        <div class="dashboard-card fade-in delay-1">
+          <div class="card-title">Revenue Forecast (Next 90 days)</div>
+          <div class="card-value">$3.2M</div>
+          <div class="card-change">+18% predicted growth</div>
+        </div>
+
+        <div class="dashboard-card fade-in delay-2">
+          <div class="card-title">Demand Forecast</div>
+          <div class="card-value">+24%</div>
+          <div class="card-change">Peak season incoming</div>
+        </div>
+
+        <div class="dashboard-card fade-in delay-3">
+          <div class="card-title">Churn Risk</div>
+          <div class="card-value">12</div>
+          <div class="card-change">customers at risk</div>
+        </div>
+
+        <div class="dashboard-card fade-in delay-1">
+          <div class="card-title">Model Accuracy</div>
+          <div class="card-value">94.2<span style="font-size: 16px; color: var(--text-secondary);">%</span></div>
+          <div class="card-change">High confidence</div>
+        </div>
+      </div>
+
+      <!-- PREDICTION CHARTS -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 24px; margin-top: 40px;">
+        <div class="chart-container">
+          <h3 class="chart-title">Revenue Forecast (Next 12 Months)</h3>
+          <canvas id="forecastChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+          <h3 class="chart-title">Demand Prediction by Category</h3>
+          <canvas id="demandChart"></canvas>
+        </div>
+      </div>
+
+      <!-- AI INSIGHTS -->
+      <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px; margin-top: 32px;">
+        <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 24px;">🤖 AI-Generated Insights</h2>
+        <div style="display: grid; gap: 16px;">
+          <div style="padding: 16px; background: var(--surface2); border-left: 4px solid var(--primary); border-radius: 6px;">
+            <div style="font-weight: 600; margin-bottom: 4px;">Peak Demand Window</div>
+            <p style="font-size: 13px; color: var(--text-secondary);">Based on historical patterns, expect 32% higher order volume in July-August. Consider increasing inventory for Category-A products by 40%.</p>
+          </div>
+          <div style="padding: 16px; background: var(--surface2); border-left: 4px solid var(--secondary); border-radius: 6px;">
+            <div style="font-weight: 600; margin-bottom: 4px;">Customer Retention Alert</div>
+            <p style="font-size: 13px; color: var(--text-secondary);">12 high-value customers show churn risk. Recommend personalized outreach and exclusive offers to retain them within next 30 days.</p>
+          </div>
+          <div style="padding: 16px; background: var(--surface2); border-left: 4px solid var(--accent); border-radius: 6px;">
+            <div style="font-weight: 600; margin-bottom: 4px;">Inventory Optimization</div>
+            <p style="font-size: 13px; color: var(--text-secondary);">SKU-002 and SKU-005 show increasing demand. Recommend reordering 150 units immediately to avoid stockout in Q3.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS PAGE -->
+  <div class="page" id="settingsPage">
+    <div class="container">
+      <div style="margin-bottom: 40px;">
+        <button class="btn-back" onclick="navigateTo('dashboard')">← Back to Dashboard</button>
+      </div>
+
+      <h1 style="font-size: 32px; font-weight: 800; margin-bottom: 8px;">Settings</h1>
+      <p style="color: var(--text-secondary); margin-bottom: 40px;">Manage your account and system preferences</p>
+
+      <div style="max-width: 800px;">
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px; margin-bottom: 24px;">
+          <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 24px;">👤 Profile Settings</h3>
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" class="form-input" value="Admin User">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" class="form-input" value="admin@company.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <input type="tel" class="form-input" placeholder="+1 (555) 000-0000">
+          </div>
+          <button class="btn btn-primary">Save Changes</button>
+        </div>
+
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px; margin-bottom: 24px;">
+          <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 24px;">🔐 Security</h3>
+          <div class="form-group">
+            <label class="form-label">Current Password</label>
+            <input type="password" class="form-input" placeholder="••••••••">
+          </div>
+          <div class="form-group">
+            <label class="form-label">New Password</label>
+            <input type="password" class="form-input" placeholder="••••••••">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm Password</label>
+            <input type="password" class="form-input" placeholder="••••••••">
+          </div>
+          <button class="btn btn-primary">Update Password</button>
+        </div>
+
+        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 32px;">
+          <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 24px;">🔔 Notifications</h3>
+          <div style="display: grid; gap: 16px;">
+            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+              <input type="checkbox" checked style="width: 18px; height: 18px; accent-color: var(--primary);">
+              <span style="font-size: 14px;">Email notifications</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+              <input type="checkbox" checked style="width: 18px; height: 18px; accent-color: var(--primary);">
+              <span style="font-size: 14px;">SMS alerts</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+              <input type="checkbox" style="width: 18px; height: 18px; accent-color: var(--primary);">
+              <span style="font-size: 14px;">Weekly reports</span>
+            </label>
+          </div>
+          <button class="btn btn-secondary" style="margin-top: 24px;">Save Preferences</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <h4>Product</h4>
+        <a onclick="navigateTo('home')">Home</a>
+        <a href="#">Features</a>
+        <a href="#">Pricing</a>
+        <a href="#">Security</a>
+      </div>
+      <div class="footer-section">
+        <h4>Company</h4>
+        <a href="#">About Us</a>
+        <a href="#">Blog</a>
+        <a href="#">Careers</a>
+        <a href="#">Contact</a>
+      </div>
+      <div class="footer-section">
+        <h4>Resources</h4>
+        <a href="#">Documentation</a>
+        <a href="#">API Docs</a>
+        <a href="#">Support</a>
+        <a href="#">Community</a>
+      </div>
+      <div class="footer-section">
+        <h4>Legal</h4>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">Cookie Policy</a>
+        <a href="#">Compliance</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      © 2024 Cloud ERP Suite. All rights reserved. Built with ❤️ for enterprise success.
+    </div>
+  </footer>
+</div>
+
+<!-- CHATBOT WIDGET -->
+<button class="chatbot-toggle" id="chatbotToggle" onclick="toggleChatbot()">💬</button>
+<div class="chatbot-container" id="chatbot">
+  <div class="chatbot-header">
+    <span>Cloud ERP Assistant</span>
+    <button style="background: none; border: none; color: white; cursor: pointer; font-size: 18px;" onclick="toggleChatbot()">✕</button>
+  </div>
+  <div class="chatbot-messages" id="chatbotMessages">
+    <div class="message bot">
+      <div class="message-bubble">👋 Hi! I'm your Cloud ERP Assistant. How can I help you today?</div>
+    </div>
+  </div>
+  <div class="chatbot-input">
+    <input type="text" id="chatbotInput" placeholder="Type your question..." onkeypress="handleChatbotMessage(event)">
+    <button onclick="sendChatbotMessage()">Send</button>
+  </div>
+</div>
+
+<script>
+// STATE MANAGEMENT
+let currentPage = 'home';
+let isLoggedIn = false;
+let chartInstances = {};
+
+// NAVIGATION
+function navigateTo(page) {
+  // Hide all pages
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  
+  // Show selected page
+  const pageEl = document.getElementById(page + 'Page');
+  if (pageEl) {
+    pageEl.classList.add('active');
+    currentPage = page;
+    updateUI();
+    
+    // Initialize charts when going to analytics or prediction pages
+    if (page === 'analytics') {
+      setTimeout(() => initializeCharts(), 100);
+    }
+    if (page === 'prediction') {
+      setTimeout(() => initializePredictionCharts(), 100);
+    }
+  }
+  
+  // Close sidebar on mobile
+  if (window.innerWidth <= 768) {
+    document.getElementById('sidebar').classList.add('hidden');
+  }
+}
+
+function updateUI() {
+  const topBar = document.getElementById('topBar');
+  const sidebar = document.getElementById('sidebar');
+  const navbar = document.getElementById('navbar');
+  
+  if (isLoggedIn && currentPage !== 'login' && currentPage !== 'register' && currentPage !== 'home') {
+    topBar.style.display = 'flex';
+    sidebar.classList.remove('hidden');
+    document.getElementById('mainContent').style.marginLeft = '250px';
+    document.querySelector('footer').style.marginLeft = '250px';
+    navbar.style.display = 'none';
+  } else {
+    topBar.style.display = 'none';
+    sidebar.classList.add('hidden');
+    document.getElementById('mainContent').style.marginLeft = '0';
+    document.querySelector('footer').style.marginLeft = '0';
+    navbar.style.display = 'flex';
+  }
+  
+  // Update breadcrumb
+  const labels = {
+    dashboard: 'Dashboard',
+    analytics: 'Analytics',
+    employees: 'Employees',
+    inventory: 'Inventory',
+    prediction: 'AI Predictions',
+    settings: 'Settings'
+  };
+  
+  if (document.getElementById('breadcrumb')) {
+    document.getElementById('breadcrumb').textContent = labels[currentPage] || 'Page';
+  }
+  
+  // Update nav active state
+  document.querySelectorAll('.nav-item').forEach(item => {
+    const page = item.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+    item.classList.toggle('active', page === currentPage);
+  });
+}
+
+// AUTH HANDLERS
+function handleLogin(event) {
+  event.preventDefault();
+  isLoggedIn = true;
+  navigateTo('dashboard');
+  alert('✅ Welcome! You have successfully logged in.');
+}
+
+function handleRegister(event) {
+  event.preventDefault();
+  isLoggedIn = true;
+  navigateTo('dashboard');
+  alert('✅ Account created successfully! Welcome to Cloud ERP.');
+}
+
+function logout() {
+  isLoggedIn = false;
+  navigateTo('home');
+  alert('👋 You have been logged out.');
+}
+
+// SIDEBAR TOGGLE
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('hidden');
+}
+
+// NAVBAR SCROLL
+window.addEventListener('scroll', () => {
+  const navbar = document.getElementById('navbar');
+  if (window.scrollY > 50) {
+    navbar.classList.add('scrolled');
+  } else {
+    navbar.classList.remove('scrolled');
+  }
+});
+
+// SMOOTH SCROLL
+function scrollToSection(id) {
+  const element = document.getElementById(id);
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth' });
+  }
+}
+
+// CHARTS
+function initializeCharts() {
+  // Revenue Chart
+  const revenueCtx = document.getElementById('revenueChart');
+  if (revenueCtx && !chartInstances.revenue) {
+    chartInstances.revenue = new Chart(revenueCtx, {
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datasets: [{
+          label: 'Revenue ($K)',
+          data: [180, 195, 220, 240, 260, 275, 290, 310, 295, 320, 345, 380],
+          borderColor: '#6366f1',
+          backgroundColor: 'rgba(99, 102, 241, 0.1)',
+          tension: 0.4,
+          fill: true,
+          pointRadius: 5,
+          pointBackgroundColor: '#6366f1'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, grid: { color: 'rgba(226, 232, 240, 0.1)' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  // Category Chart
+  const categoryCtx = document.getElementById('categoryChart');
+  if (categoryCtx && !chartInstances.category) {
+    chartInstances.category = new Chart(categoryCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Electronics', 'Software', 'Services', 'Hardware', 'Consulting'],
+        datasets: [{
+          data: [35, 25, 20, 15, 5],
+          backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } }
+      }
+    });
+  }
+
+  // Status Chart
+  const statusCtx = document.getElementById('statusChart');
+  if (statusCtx && !chartInstances.status) {
+    chartInstances.status = new Chart(statusCtx, {
+      type: 'pie',
+      data: {
+        labels: ['Completed', 'Pending', 'Processing', 'Cancelled'],
+        datasets: [{
+          data: [45, 30, 20, 5],
+          backgroundColor: ['#10b981', '#f59e0b', '#6366f1', '#ef4444']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } }
+      }
+    });
+  }
+}
+
+function initializePredictionCharts() {
+  // Forecast Chart
+  const forecastCtx = document.getElementById('forecastChart');
+  if (forecastCtx && !chartInstances.forecast) {
+    chartInstances.forecast = new Chart(forecastCtx, {
+      type: 'line',
+      data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datasets: [
+          {
+            label: 'Predicted Revenue ($M)',
+            data: [2.2, 2.4, 2.6, 2.8, 3.0, 3.2, 3.5, 3.8, 3.6, 3.9, 4.2, 4.5],
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+            tension: 0.4,
+            fill: true,
+            pointRadius: 5,
+            pointBackgroundColor: '#6366f1'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, grid: { color: 'rgba(226, 232, 240, 0.1)' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  // Demand Chart
+  const demandCtx = document.getElementById('demandChart');
+  if (demandCtx && !chartInstances.demand) {
+    chartInstances.demand = new Chart(demandCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Electronics', 'Software', 'Services', 'Hardware'],
+        datasets: [{
+          label: 'Predicted Demand Increase (%)',
+          data: [28, 18, 35, 22],
+          backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#ef4444']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, grid: { color: 'rgba(226, 232, 240, 0.1)' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+  }
+}
+
+// CHATBOT
+function toggleChatbot() {
+  const chatbot = document.getElementById('chatbot');
+  const toggle = document.getElementById('chatbotToggle');
+  chatbot.classList.toggle('active');
+  toggle.classList.toggle('hidden');
+}
+
+function sendChatbotMessage() {
+  const input = document.getElementById('chatbotInput');
+  const message = input.value.trim();
+  if (!message) return;
+
+  // Add user message
+  const messagesDiv = document.getElementById('chatbotMessages');
+  const userMsg = document.createElement('div');
+  userMsg.className = 'message user';
+  userMsg.innerHTML = `<div class="message-bubble">${message}</div>`;
+  messagesDiv.appendChild(userMsg);
+  input.value = '';
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+  // Simulate bot response
+  setTimeout(() => {
+    const botMsg = document.createElement('div');
+    botMsg.className = 'message bot';
+    const responses = [
+      '📊 You can view detailed analytics in the Analytics section.',
+      '👥 Check the Employees page to manage your team.',
+      '📦 Inventory items are tracked in real-time.',
+      '🤖 AI predictions are available in the Predictions section.',
+      '💾 Your data is automatically saved and backed up.',
+      '🔒 Enterprise-level security is enabled.',
+      '⚙️ Visit Settings to configure your preferences.'
+    ];
+    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+    botMsg.innerHTML = `<div class="message-bubble">${randomResponse}</div>`;
+    messagesDiv.appendChild(botMsg);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  }, 500);
+}
+
+function handleChatbotMessage(event) {
+  if (event.key === 'Enter') {
+    sendChatbotMessage();
+  }
+}
+
+// RESPONSIVE ADJUSTMENTS
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 768) {
+    document.getElementById('sidebar').classList.remove('hidden');
+  }
+});
+
+// INITIALIZE
+document.addEventListener('DOMContentLoaded', () => {
+  updateUI();
+  addFadeInAnimations();
+});
+
+// FADE IN ANIMATIONS
+function addFadeInAnimations() {
+  const elements = document.querySelectorAll('.fade-in');
+  elements.forEach((el, index) => {
+    const delay = el.classList.contains('delay-1') ? 100 : 
+                  el.classList.contains('delay-2') ? 200 : 
+                  el.classList.contains('delay-3') ? 300 : 0;
+    el.style.animation = `fadeIn 0.5s ease forwards`;
+    el.style.animationDelay = `${delay}ms`;
+  });
+}
+</script>
+
+</body>
+</html>
